@@ -21,6 +21,9 @@ int main()
 	// 은행.
 	Bank bank;
 
+	// 파일에서 데이터 로드.
+	bank.Load("Save.txt");
+
 	// 메뉴 선택 입력 받기.
 	char tempBuffer[10] = {};
 
@@ -34,6 +37,9 @@ int main()
 		std::cin >> tempBuffer;
 		if (strcmp(tempBuffer, "q") == 0)
 		{
+			// 파일에 계좌 정보 저장.
+			bank.Save("Save.txt");
+
 			// 종료.
 			return 0;
 		}

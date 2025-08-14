@@ -93,3 +93,21 @@ void Account::Print()
 	std::cout << "이름: " << name << " | ";
 	std::cout << "잔액: " << balance << "\n";
 }
+
+const char* Account::Serialize()
+{
+	// 문자열로 정보를 출력하기 위한 버퍼 생성.
+	const int bufferSize = 1024;
+	char* buffer = new char[bufferSize];
+	memset(buffer, 0, sizeof(char) * bufferSize);
+
+	// 문자열 조합.
+	sprintf_s(
+		buffer,
+		bufferSize,
+		"type: %d id: %d name: %s balance: %d\n",
+		(int)type, id, name, balance
+	);
+
+	return buffer;
+}

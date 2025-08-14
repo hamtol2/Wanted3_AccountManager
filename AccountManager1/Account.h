@@ -29,6 +29,9 @@ public:
 	// 정보 출력.
 	virtual void Print();
 
+	// 계좌 정보를 문자열로 직렬화하는 함수.
+	virtual const char* Serialize();
+
 	// Getter.
 	inline int GetID() const { return id; }
 	inline const char* GetName() const { return name; }

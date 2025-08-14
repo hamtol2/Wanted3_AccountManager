@@ -17,6 +17,10 @@ public:
 	void Withdraw();
 	void Inquire();
 
+	// 저장/로드 함수.
+	void Save(const char* filename);
+	void Load(const char* filename);
+
 private:
 	// 계좌 최대 수.
 	static const int accountCount = 100;

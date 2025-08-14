@@ -108,17 +108,17 @@ void Bank::CreateAccount()
 	switch (type)
 	{
 	case AccountType::Account:
-		{
-			accounts[count++] = new Account(id, name, balance);
-		} break;
+	{
+		accounts[count++] = new Account(id, name, balance);
+	} break;
 	case AccountType::CreditAccount:
-		{
-			accounts[count++] = new CreditAccount(id, name, balance);
-		} break;
+	{
+		accounts[count++] = new CreditAccount(id, name, balance);
+	} break;
 	case AccountType::DonationAccount:
-		{
-			accounts[count++] = new DonationAccount(id, name, balance);
-		} break;
+	{
+		accounts[count++] = new DonationAccount(id, name, balance);
+	} break;
 	}
 
 	std::cout << "\n";
@@ -275,4 +275,135 @@ void Bank::Inquire()
 	}
 
 	std::cout << "\n";
+}
+
+void Bank::Save(const char* filename)
+{
+	// 저장할 데이터 생성.
+	// 1. 은행이 가지고 있는 모든 계좌로부터 직렬화된 문자열 값을 누적.
+	// 2. 파일에 기록.
+	// 업그레이드 요지가 많음.
+	const int bufferSize = 4096;
+	char buffer[bufferSize] = {};
+	for (int ix = 0; ix < count; ++ix)
+	{
+		// 직렬화된 문자열 얻어오기.
+		const char* data = accounts[ix]->Serialize();
+
+		// 직렬화된 문자열을 최종 문자열에 더하기.
+		strcat_s(buffer, sizeof(buffer), data);
+		delete data;
+	}
+
+	// 파일에 기록.
+	FILE* file = nullptr;
+	fopen_s(&file, filename, "wb");
+	if (file == nullptr)
+	{
+		std::cerr << "파일을 열지 못했습니다.\n";
+		return;
+	}
+
+	// 실제로 파일에 기록할 데이터 크기 확인.
+	size_t dataLength = strlen(buffer);
+
+	// 파일에 쓰기.
+	fwrite(buffer, sizeof(char), dataLength, file);
+	fclose(file);
+}
+
+void Bank::Load(const char* filename)
+{
+	FILE* file = nullptr;
+	fopen_s(&file, filename, "rt");
+	if (file == nullptr)
+	{
+		std::cerr << "파일을 열지 못했습니다.\n";
+		return;
+	}
+
+	// 버퍼 생성.
+	const int bufferSize = 1024;
+	char buffer[bufferSize] = { };
+
+	while (!feof(file))
+	{
+		// 한줄씩 읽기.
+		fgets(buffer, bufferSize, file);
+
+		// 파일에서 읽은 데이터가 없으면 종료.
+		if (!buffer)
+		{
+			break;
+		}
+
+		// 계좌 타입 확인.
+		int accountType = -1;
+		sscanf_s(buffer, "type: %d", &accountType);
+
+		// 계좌 정보 변수.
+		int id = 0;
+		char name[50] = {};
+		int balance = 0;
+
+		// 계좌 타입별로 처리.
+		switch ((AccountType)accountType)
+		{
+			// 계좌 타입 정보가 잘못되거나 정보가 없는 경우.
+			case AccountType::None:
+				fclose(file);
+				return;
+
+			case AccountType::Account:
+			{
+				sscanf_s(
+					buffer,
+					"type: %d id: %d name: %s balance: %d",
+					&accountType, &id, name, 50, &balance
+				);
+
+				// 계좌 생성.
+				accounts[count++] = new Account(id, name, balance);
+			} break;
+
+			case AccountType::CreditAccount:
+			{
+				sscanf_s(
+					buffer,
+					"type: %d id: %d name: %s balance: %d",
+					&accountType, &id, name, 50, &balance
+				);
+
+				// 계좌 생성.
+				accounts[count++] = new CreditAccount(id, name, balance, false);
+			} break;
+
+			case AccountType::DonationAccount:
+			{
+				int donationAmount = 0;
+
+				sscanf_s(
+					buffer,
+					"type: %d id: %d name: %s balance: %d donationAmount: %d",
+					&accountType, &id, name, 50, &balance, &donationAmount
+				);
+
+				// 계좌 생성.
+				auto account = new DonationAccount(id, name, balance, false);
+				
+				// 파일에서 읽은 기부액 설정.
+				account->SetDonationAmount(donationAmount);
+
+				// 계좌 추가.
+				accounts[count++] = account;
+
+			} break;
+		}
+
+		// 버퍼 비우기.
+		memset(buffer, 0, sizeof(char) * bufferSize);
+	}
+
+	// 파일 닫기.
+	fclose(file);
 }

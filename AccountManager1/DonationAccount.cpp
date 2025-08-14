@@ -9,7 +9,7 @@ DonationAccount::DonationAccount(int id, const char* name, int balance)
 void DonationAccount::Deposit(int money)
 {
 	Account::Deposit(money - (int)(money * 0.01f));
-	donationAmount = (int)(money * 0.01f);
+	donationAmount += (int)(money * 0.01f);
 }
 
 void DonationAccount::Print()
